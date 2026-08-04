@@ -122,8 +122,30 @@ def seed_data():
             db.add_all(records_batch)
             db.commit()
             logger.info(f"已预种 {len(records_batch)} 条历史情绪记录（6天 × 3学生）")
-    finally:
-        db.close()
+
+        # 预种预警数据
+        from backend.models.alert import Alert
+        if db.query(Alert).count() == 0:
+            for student in students:
+                # 基于该学生的种子记录计算综合评分
+                student_records = [r for r in records_batch if r.student_id == student.id]
+                avg_score = sum(r.fused_score for r in student_records) / len(student_records) if student_records else 0.5
+                severity = "green" if avg_score >= 0.7 else ("yellow" if avg_score >= 0.4 else "red")
+                reason = "情绪状态良好，各项指标正常" if severity == "green" else \
+                         "情绪状态需关注，存在轻微波动" if severity == "yellow" else "情绪状态异常，建议紧急关注"
+                channels = json.dumps(["看板", "APP"] if severity == "green" else \
+                           (["看板", "APP", "微信(班主任)"] if severity == "yellow" else \
+                            ["看板", "APP", "微信(班主任)", "微信(家长)", "短信", "邮件", "紧急电话"]))
+                db.add(Alert(
+                    student_id=student.id, severity=severity, alert_reason=reason,
+                    overall_score=round(avg_score, 3), risk_level=severity, risk_reason=reason,
+                    feedback_channel=",".join(json.loads(channels)),
+                    feedback_content=f"[{severity.upper()}] {student.name}: {reason}",
+                    sent_channels=channels,
+                    triggered_at=datetime.now().isoformat(),
+                ))
+            db.commit()
+            logger.info("已预种 3 条预警记录（每学生1条）")
 
 
 @asynccontextmanager
