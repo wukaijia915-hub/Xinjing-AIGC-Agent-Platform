@@ -6,7 +6,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-from vibraimage.core.frame_differencer import FrameDifferencer
+from backend.vibraimage.core.frame_differencer import FrameDifferencer
 
 
 def test_basic_difference():

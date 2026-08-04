@@ -6,20 +6,20 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-from vibraimage.core.histogram import HistogramStats, FrequencyHistogram
-from vibraimage.core.spatial_analyzer import SpatialAnalyzer, PerLineStats
-from vibraimage.emotions.primary import (
+from backend.vibraimage.core.histogram import HistogramStats, FrequencyHistogram
+from backend.vibraimage.core.spatial_analyzer import SpatialAnalyzer, PerLineStats
+from backend.vibraimage.emotions.primary import (
     compute_aggression, compute_stress, compute_tension,
     compute_primary_emotions,
 )
-from vibraimage.emotions.derived import (
+from backend.vibraimage.emotions.derived import (
     compute_suspect, compute_balance, compute_charm,
     compute_energy, compute_self_regulation,
     compute_inhibition, compute_neuroticism,
     compute_depression, compute_happiness,
     compute_information_efficiency, compute_energy_characteristic,
 )
-from vibraimage.emotions.psychophysiological import (
+from backend.vibraimage.emotions.psychophysiological import (
     compute_stability, compute_k_value, interpret_k,
 )
 
@@ -186,7 +186,7 @@ def test_e12_happiness():
 # ============================================================================
 
 def test_k_value():
-    from vibraimage.utils.constants import NORMAL_NORMS, STANDARDIZATION_FACTORS
+    from backend.vibraimage.utils.constants import NORMAL_NORMS, STANDARDIZATION_FACTORS
     params = {k: v for k, v in NORMAL_NORMS.items()}
     K = compute_k_value(params, NORMAL_NORMS, STANDARDIZATION_FACTORS)
     assert abs(K) < 0.01, f"All-normal should give K≈0, got {K}"
