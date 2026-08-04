@@ -22,8 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 COPY run_backend.py .
 
-# 前端构建产物
-COPY --from=frontend-builder /app/frontend/dist ./static
+# 前端构建产物（vite outDir 配置为 ../static）
+COPY --from=frontend-builder /app/static ./static
 
 # 数据目录
 RUN mkdir -p /app/data/uploads /app/data/camera /app/data/obs /app/logs
