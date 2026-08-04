@@ -198,9 +198,10 @@ class OrchestratorAgent:
             return result
 
         except Exception as e:
-            logger.error(f"内环执行失败: {e}")
-            await self._emit(run_id, "error", {"content": str(e)})
-            return {"error": str(e)}
+            import traceback
+            logger.error(f"内环执行失败: {e}\n{traceback.format_exc()}")
+            await self._emit(run_id, "error", {"content": str(e) or type(e).__name__})
+            return {"error": str(e) or type(e).__name__}
 
     async def run_outer_loop(
         self,
