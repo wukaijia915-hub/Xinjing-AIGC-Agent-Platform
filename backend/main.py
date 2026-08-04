@@ -123,29 +123,33 @@ def seed_data():
             db.commit()
             logger.info(f"已预种 {len(records_batch)} 条历史情绪记录（6天 × 3学生）")
 
-        # 预种预警数据
-        from backend.models.alert import Alert
-        if db.query(Alert).count() == 0:
-            for student in students:
-                # 基于该学生的种子记录计算综合评分
-                student_records = [r for r in records_batch if r.student_id == student.id]
-                avg_score = sum(r.fused_score for r in student_records) / len(student_records) if student_records else 0.5
-                severity = "green" if avg_score >= 0.7 else ("yellow" if avg_score >= 0.4 else "red")
-                reason = "情绪状态良好，各项指标正常" if severity == "green" else \
-                         "情绪状态需关注，存在轻微波动" if severity == "yellow" else "情绪状态异常，建议紧急关注"
-                channels = json.dumps(["看板", "APP"] if severity == "green" else \
-                           (["看板", "APP", "微信(班主任)"] if severity == "yellow" else \
-                            ["看板", "APP", "微信(班主任)", "微信(家长)", "短信", "邮件", "紧急电话"]))
-                db.add(Alert(
-                    student_id=student.id, severity=severity, alert_reason=reason,
-                    overall_score=round(avg_score, 3), risk_level=severity, risk_reason=reason,
-                    feedback_channel=",".join(json.loads(channels)),
-                    feedback_content=f"[{severity.upper()}] {student.name}: {reason}",
-                    sent_channels=channels,
+    finally:
+        db.close()
+
+    # 预种预警数据（独立 session，表已由 seed_data 的 create_all 建好）
+    from backend.database import SessionLocal as _SL
+    from backend.models.alert import Alert as _Alert
+    _db = _SL()
+    try:
+        if _db.query(_Alert).count() == 0:
+            for s in _db.query(Student).all():
+                recs = _db.query(EmotionRecord).filter(EmotionRecord.student_id == s.id).limit(50).all()
+                avg = sum(r.fused_score for r in recs) / len(recs) if recs else 0.5
+                sev = "green" if avg >= 0.7 else ("yellow" if avg >= 0.4 else "red")
+                reason = "基线情绪正常" if sev == "green" else "需关注波动" if sev == "yellow" else "建议紧急干预"
+                ch = ["看板","APP"] if sev=="green" else (["看板","APP","微信(班主任)"] if sev=="yellow" else ["看板","APP","微信(班主任)","微信(家长)","短信","邮件","紧急电话"])
+                _db.add(_Alert(
+                    student_id=s.id, severity=sev, alert_reason=reason,
+                    overall_score=round(avg,3), risk_level=sev, risk_reason=reason,
+                    feedback_channel=",".join(ch),
+                    feedback_content=f"[{sev.upper()}] {s.name}: {reason}",
+                    sent_channels=json.dumps(ch),
                     triggered_at=datetime.now().isoformat(),
                 ))
-            db.commit()
-            logger.info("已预种 3 条预警记录（每学生1条）")
+            _db.commit()
+            logger.info("已预种 3 条预警记录")
+    finally:
+        _db.close()
 
 
 @asynccontextmanager
