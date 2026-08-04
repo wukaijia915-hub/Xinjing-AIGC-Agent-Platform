@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 
 def seed_data():
-    """预种演示数据：3个学生 + 7天历史情绪记录"""
-    import random
+    """预种演示数据：3个学生 + 7天历史情绪记录 + 预警"""
+    import random, json
     from datetime import datetime, timedelta
     from backend.database import engine, Base, SessionLocal
     from backend.models.student import Student
@@ -126,28 +126,32 @@ def seed_data():
     finally:
         db.close()
 
-    # 预种预警数据（独立 session，表已由 seed_data 的 create_all 建好）
+    # 预种预警数据：确保绿/黄/红各一条
     from backend.database import SessionLocal as _SL
     from backend.models.alert import Alert as _Alert
     _db = _SL()
     try:
         if _db.query(_Alert).count() == 0:
-            for s in _db.query(Student).all():
-                recs = _db.query(EmotionRecord).filter(EmotionRecord.student_id == s.id).limit(50).all()
-                avg = sum(r.fused_score for r in recs) / len(recs) if recs else 0.5
-                sev = "green" if avg >= 0.7 else ("yellow" if avg >= 0.4 else "red")
-                reason = "基线情绪正常" if sev == "green" else "需关注波动" if sev == "yellow" else "建议紧急干预"
+            severities = ["green", "yellow", "red"]
+            reasons = {
+                "green": "近期情绪状态稳定，各项指标正常，保持良好状态",
+                "yellow": "情绪存在轻度波动，负面情绪占比略高，建议适度关注",
+                "red": "近期情绪波动明显，负面情绪累积，建议安排一对一访谈",
+            }
+            for s, sev in zip(sorted(_db.query(Student).all(), key=lambda x: x.baseline_mood, reverse=True), severities):
                 ch = ["看板","APP"] if sev=="green" else (["看板","APP","微信(班主任)"] if sev=="yellow" else ["看板","APP","微信(班主任)","微信(家长)","短信","邮件","紧急电话"])
                 _db.add(_Alert(
-                    student_id=s.id, severity=sev, alert_reason=reason,
-                    overall_score=round(avg,3), risk_level=sev, risk_reason=reason,
+                    student_id=s.id,
+                    severity=sev, risk_level=sev,
+                    alert_reason=reasons[sev], risk_reason=reasons[sev],
+                    overall_score={"green":0.82,"yellow":0.58,"red":0.31}[sev],
                     feedback_channel=",".join(ch),
-                    feedback_content=f"[{sev.upper()}] {s.name}: {reason}",
+                    feedback_content=f"[{sev.upper()}] {s.name}: {reasons[sev]}",
                     sent_channels=json.dumps(ch),
                     triggered_at=datetime.now().isoformat(),
                 ))
             _db.commit()
-            logger.info("已预种 3 条预警记录")
+            logger.info("已预种 3 条预警记录（绿/黄/红各一）")
     finally:
         _db.close()
 
