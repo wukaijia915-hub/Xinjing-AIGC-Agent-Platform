@@ -106,6 +106,10 @@ const form = ref({
   emotion_summary: '近期情绪总体稳定，偶尔有轻微波动。',
   risk_factors_text: '',
   period_days: 30,
+  // 预设完整指标供 Demo 展示
+  indicators_json: '{"emotional_stability_index":0.78,"positive_emotion_ratio":0.65,"negative_emotion_ratio":0.15,"trend":"稳定","emotion_fluctuation_entropy":0.35,"stress_accumulation_index":0.18,"emotion_recovery_speed":0.72,"social_interaction_frequency":0.65,"arousal_abnormality_index":0.25,"emotion_abrupt_change_count":0,"overall_mental_health_score":0.82}',
+  prediction_json: '{"trend_prediction":"小幅回升","next_day_emotion":0.78}',
+  suggestions_text: '保持良好状态，继续参与集体活动',
 })
 
 function selectCapability(cap) {
@@ -124,19 +128,33 @@ async function generate() {
     if (cap.id === 'daily_report') {
       let emotionData = {}
       try { emotionData = JSON.parse(form.value.emotion_json) } catch(e) {}
+      let indicators = {}
+      try { indicators = JSON.parse(form.value.indicators_json) } catch(e) {}
+      let prediction = {}
+      try { prediction = JSON.parse(form.value.prediction_json) } catch(e) {}
+      let suggestions = form.value.suggestions_text.split('\n').filter(f => f.trim()).map(s => ({priority:'low',content:s}))
       body = {
         student_name: form.value.student_name,
         date: form.value.date,
         emotion_data: emotionData,
-        analysis_result: {},
+        analysis_result: {
+          overall_score: emotionData.fused_score || 0.7,
+          risk_level: form.value.risk_level,
+          indicators: indicators,
+          risk_factors: form.value.risk_factors_text.split('\n').filter(f => f.trim()),
+          suggestions: suggestions,
+          llm_prediction: prediction,
+        },
       }
     } else if (cap.id === 'intervention_plan') {
       const factors = form.value.risk_factors_text.split('\n').filter(f => f.trim())
+      let indicators = {}
+      try { indicators = JSON.parse(form.value.indicators_json) } catch(e) {}
       body = {
         student_name: form.value.student_name,
         risk_level: form.value.risk_level,
         risk_factors: factors,
-        indicators: {},
+        indicators: indicators,
       }
     } else if (cap.id === 'parent_letter') {
       body = {
