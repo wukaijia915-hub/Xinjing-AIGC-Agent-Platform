@@ -23,6 +23,9 @@ from backend.agents.alert_agent import AlertAgent
 
 logger = logging.getLogger(__name__)
 
+# 全局单例 — SSE、upload、agents 路由共享同一个实例
+_orchestrator_instance = None
+
 # 模块级共享状态 — 确保不同OrchestratorAgent实例间队列和结果可共享
 # （例如：POST /api/agents/trigger/outer 创建队列，
 #        GET /api/sse/stream/{run_id} 读取队列）
@@ -284,3 +287,11 @@ class OrchestratorAgent:
             "platform": self.perception.get_info().get("platform", "未知"),
             "streaming": self.streaming,
         }
+
+
+def get_shared_orchestrator(platform: str | None = None):
+    """返回全局唯一的 OrchestratorAgent 实例（线程安全）。"""
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        _orchestrator_instance = OrchestratorAgent(streaming=True, platform=platform)
+    return _orchestrator_instance

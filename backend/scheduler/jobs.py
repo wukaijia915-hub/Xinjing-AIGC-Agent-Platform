@@ -36,7 +36,7 @@ def _log_scheduler_run(job_type: str, result: dict) -> None:
 
 
 async def trigger_inner_loop_job():
-    from backend.agents.orchestrator_agent import OrchestratorAgent
+    from backend.agents.orchestrator_agent import get_shared_orchestrator
     db = SessionLocal()
     try:
         students = db.query(Student).all()
@@ -48,7 +48,7 @@ async def trigger_inner_loop_job():
         _log_scheduler_run("inner", {"error": "无学生"})
         return
 
-    orchestrator = OrchestratorAgent()
+    orchestrator = get_shared_orchestrator()
     run_id = str(uuid.uuid4())
     _ = orchestrator.get_queue(run_id)
     for s in students:
@@ -63,7 +63,7 @@ async def trigger_inner_loop_job():
 
 
 async def trigger_outer_loop_job():
-    from backend.agents.orchestrator_agent import OrchestratorAgent
+    from backend.agents.orchestrator_agent import get_shared_orchestrator
     db = SessionLocal()
     try:
         students = db.query(Student).all()
@@ -77,7 +77,7 @@ async def trigger_outer_loop_job():
         _log_scheduler_run("outer", {"error": "无学生"})
         return
 
-    orchestrator = OrchestratorAgent()
+    orchestrator = get_shared_orchestrator()
     run_id = str(uuid.uuid4())
     _ = orchestrator.get_queue(run_id)
     result = await orchestrator.run_outer_loop(

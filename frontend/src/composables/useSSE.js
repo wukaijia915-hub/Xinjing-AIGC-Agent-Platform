@@ -5,7 +5,7 @@ export function useSSE() {
   const connected = ref(false);
 
   function connect(runId) {
-    const url = `/api/agent/stream/${runId}`;
+    const url = `/api/agents/stream/${runId}`;
     const es = new EventSource(url);
     connected.value = true;
 
