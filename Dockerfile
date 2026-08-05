@@ -1,14 +1,7 @@
-# 心镜·AIGC智能体平台 - Dockerfile
-# 阶段1: 构建前端
-FROM node:20-alpine AS frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci --registry=https://registry.npmmirror.com 2>/dev/null || npm install --registry=https://registry.npmmirror.com
-COPY frontend/ .
-RUN npm run build
-
-# 阶段2: 后端 + 前端静态文件
+# 心镜·AIGC智能体平台 - Dockerfile（本地预编译版）
+# 前端需在本地提前编译（npm run build），产物在 static/ 目录
 FROM python:3.11-slim
+
 WORKDIR /app
 
 # 基础工具
@@ -22,11 +15,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 COPY run_backend.py .
 
-# 前端构建产物（vite outDir 配置为 ../static）
-COPY --from=frontend-builder /app/static ./static
+# 前端构建产物（本地已编译完成）
+COPY static/ ./static/
 
-# 数据目录（含量表JSON）
+# 数据目录（含量表JSON、种子数据）
 COPY data/ ./data/
+
+# 运行时目录
 RUN mkdir -p /app/data/uploads /app/data/camera /app/data/obs /app/logs
 
 EXPOSE 8000

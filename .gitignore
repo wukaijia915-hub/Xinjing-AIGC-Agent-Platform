@@ -55,4 +55,4 @@ docs/vibraimage-reference/
 # Node
 frontend/node_modules/
 frontend/dist/
-/static/
+# 前端构建产物由本地 Docker 构建生成，提交至仓库供服务器部署
