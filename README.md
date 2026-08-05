@@ -15,6 +15,13 @@
 [![Phase](https://img.shields.io/badge/阶段-三-green.svg)]()
 [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)](LICENSE)
 
+## 🌐 在线访问
+
+| 地址 | 说明 |
+|------|------|
+| **http://43.143.238.8:8000** | 🚀 **云平台部署（公网可访问）** |
+| **http://43.143.238.8:8000/docs** | 📖 中文 Swagger API 在线文档 |
+
 ## 🔗 开源地址
 
 | 平台 | 地址 |
