@@ -25,7 +25,8 @@ COPY run_backend.py .
 # 前端构建产物（vite outDir 配置为 ../static）
 COPY --from=frontend-builder /app/static ./static
 
-# 数据目录
+# 数据目录（含量表JSON）
+COPY data/ ./data/
 RUN mkdir -p /app/data/uploads /app/data/camera /app/data/obs /app/logs
 
 EXPOSE 8000

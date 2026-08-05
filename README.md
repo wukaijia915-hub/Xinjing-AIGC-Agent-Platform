@@ -122,6 +122,13 @@
 - **低分自动标记**：用户反馈评分 ≤2 时自动记录为负面经验，避免重复错误模式
 - **零外部依赖**，仅 JSONL 文件 + prompt 注入实现，不修改模型权重
 
+### 📋 心理量表自评（多模态第三维度）
+- **三种标准化量表**：SAS（焦虑自评，20题）、SDS（抑郁自评，20题）、SCL-90（症状自评，90题/10维度）
+- **自动计分**：系统根据量表标准计分规则自动计算标准分和等级（正常/轻度/中度/偏重）
+- **AI交叉验证**：`GET /api/scales/crosscheck/{student_id}` 对比量表结果与AI情绪识别数据，输出一致性报告
+- **种子数据**：每个学生预种 2 份量表数据（SAS/SDS），仪表盘和 AIGC 报告自动引用
+- 量表题目来源于公开发表学术论文（Zung, 1965/1971; Derogatis, 1975），遵循学术使用规范
+
 ### 🚨 三级预警系统
 - 🟢 绿色：看板 + APP推送
 - 🟡 黄色：+ 微信班主任通知
@@ -133,7 +140,7 @@
 
 ### 智慧教室日常监测
 - 部署于智慧教室环境中，通过摄像头定时采集学生面部视频
-- 每15分钟自动运行内环流程，完成全班双模态情绪采集
+- 每15分钟自动运行内环流程，完成全班多模态情绪采集
 - 每日22:00自动运行外环流程，生成全班心理健康日报
 
 ### 心理健康预警与干预
@@ -352,6 +359,9 @@ python -m pytest tests/ -v
 | 智能体 | `GET /api/agents/platform` | 国产算力平台信息 |
 | 智能体 | `POST /api/agents/trigger/inner` | 触发情绪采集 |
 | 智能体 | `POST /api/agents/trigger/outer` | 触发每日分析 |
+| **量表 ★** | `GET /api/scales/{type}` | **获取量表题目（SAS/SDS/SCL-90）** |
+| **量表 ★** | `POST /api/scales/submit` | **提交自评答案（自动计分）** |
+| **量表 ★** | `GET /api/scales/crosscheck/{id}` | **量表与AI情绪交叉验证** |
 | **VibraImage** | `GET /api/vibraimage/health` | **引擎状态检查 ★** |
 | **VibraImage** | `POST /api/vibraimage/analyze` | **视频振动分析 (GPU加速) ★** |
 | **GPU** | `GET /api/gpu/status` | **GPU算力状态查询 ★** |
@@ -383,7 +393,7 @@ AI_PLATFORM=deepseek    # 使用 DeepSeek (备用)
 
 **自动模式（推荐）**：
 系统启动后会自动运行定时任务：
-- **每15分钟**：自动触发内环流程，对全班学生执行双模态情绪采集
+- **每15分钟**：自动触发内环流程，对全班学生执行多模态情绪采集
 - **每日22:00**：自动触发外环流程，执行深度分析→AIGC报告生成→预警分发
 
 **手动模式**：
@@ -419,7 +429,7 @@ curl -X POST http://localhost:8000/api/upload/image \
   -F "file=@test_photo.jpg" \
   -F "student_id=1"
 
-# 上传视频触发双模态分析
+# 上传视频触发多模态分析
 curl -X POST http://localhost:8000/api/upload/video \
   -F "file=@classroom_video.mp4" \
   -F "student_id=1"
