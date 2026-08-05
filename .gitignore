@@ -49,6 +49,9 @@ logs/
 # 大型参考资料（不在仓库中，开发者本地查阅即可）
 docs/vibraimage-reference/
 
+# 评审意见及配套资料（本地参考，不上传）
+华南师大*/
+
 # Node
 frontend/node_modules/
 frontend/dist/
