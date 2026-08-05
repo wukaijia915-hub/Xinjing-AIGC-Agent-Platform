@@ -27,4 +27,4 @@ class Student(Base):
     emotion_records = relationship("EmotionRecord", back_populates="student", cascade="all, delete-orphan")
     daily_reports = relationship("DailyReport", back_populates="student", cascade="all, delete-orphan")
     alerts = relationship("Alert", back_populates="student", cascade="all, delete-orphan")
-    scale_results = relationship("ScaleResult", back_populates="student", cascade="all, delete-orphan")
+    scale_results = relationship("backend.models.scale_result.ScaleResult", back_populates="student", cascade="all, delete-orphan")

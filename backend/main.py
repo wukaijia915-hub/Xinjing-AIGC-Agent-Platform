@@ -23,6 +23,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import get_settings
+from backend.models.scale_result import ScaleResult  # noqa: F401 预注册避免Student关系引用失败
 
 logging.basicConfig(
     level=logging.INFO,
