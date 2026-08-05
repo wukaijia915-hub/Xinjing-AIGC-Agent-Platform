@@ -155,6 +155,38 @@ def seed_data():
     finally:
         _db.close()
 
+    # 预种量表测评数据
+    from backend.models.scale_result import ScaleResult as _SR
+    _db2 = _SL()
+    try:
+        if _db2.query(_SR).count() == 0:
+            import random as _rnd
+            _rnd.seed(42)
+            all_students = _db2.query(Student).all()
+            for student in all_students:
+                # SAS
+                sas_answers = [_rnd.randint(1,4) for _ in range(20)]
+                sas_raw = sum(sas_answers)
+                sas_std = int(sas_raw * 1.25)
+                sas_level = "normal" if sas_std < 50 else ("mild" if sas_std < 60 else ("moderate" if sas_std < 70 else "severe"))
+                _db2.add(_SR(student_id=student.id, scale_type="SAS", raw_score=sas_raw,
+                    standard_score=sas_std, level=sas_level, dimension_scores="{}",
+                    answers=json.dumps(sas_answers), submitted_at=datetime.now().isoformat()))
+
+                # SDS
+                sds_answers = [_rnd.randint(1,4) for _ in range(20)]
+                sds_raw = sum(sds_answers)
+                sds_std = int(sds_raw * 1.25)
+                sds_level = "normal" if sds_std < 50 else ("mild" if sds_std < 60 else ("moderate" if sds_std < 70 else "severe"))
+                _db2.add(_SR(student_id=student.id, scale_type="SDS", raw_score=sds_raw,
+                    standard_score=sds_std, level=sds_level, dimension_scores="{}",
+                    answers=json.dumps(sds_answers), submitted_at=datetime.now().isoformat()))
+
+            _db2.commit()
+            logger.info("已预种 6 条量表测评记录（3学生 × 2量表）")
+    finally:
+        _db2.close()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -278,6 +310,7 @@ from backend.api.routes.alerts import router as alerts_router
 from backend.api.routes.aigc import router as aigc_router
 from backend.api.routes.agents import router as agents_router
 from backend.api.routes.vibraimage import router as vibraimage_router
+from backend.api.routes.scales import router as scales_router
 from backend.api.routes.admin import router as admin_router
 
 app.include_router(upload_router, prefix="/api")
@@ -288,6 +321,7 @@ app.include_router(alerts_router, prefix="/api")
 app.include_router(aigc_router, prefix="/api")
 app.include_router(agents_router, prefix="/api")
 app.include_router(vibraimage_router)
+app.include_router(scales_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
 # 注册 GPU 状态 API

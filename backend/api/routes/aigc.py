@@ -135,8 +135,23 @@ def _auto_fetch_emotion_data(student_id: int, date: str = "") -> dict:
 
         risk_level = "red" if avg_score < 0.4 else ("yellow" if avg_score < 0.7 else "green")
 
+        # 查找最新量表数据用于交叉验证
+        from backend.models.scale_result import ScaleResult
+        scale_records = db.query(ScaleResult).filter(
+            ScaleResult.student_id == student_id
+        ).order_by(ScaleResult.submitted_at.desc()).limit(5).all()
+        scale_ref = {}
+        for sr in scale_records:
+            scale_ref[sr.scale_type] = {
+                "standard_score": sr.standard_score,
+                "level": sr.level,
+                "cutoff_label": "正常" if sr.level == "normal" else (
+                    "轻度" if sr.level == "mild" else ("中度" if sr.level == "moderate" else "偏重"))
+            }
+
         return {
             "student_name": student.name,
+            "scale_reference": scale_ref,  # 量表交叉验证数据
             "emotion_data": emotion_data,
             "analysis_result": {
                 "overall_score": round(avg_score, 3),
