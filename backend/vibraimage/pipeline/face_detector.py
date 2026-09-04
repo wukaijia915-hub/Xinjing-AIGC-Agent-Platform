@@ -10,6 +10,8 @@
 VibraImage产品使用前置摄像头捕捉人脸，本模块提供等效功能。
 """
 
+from __future__ import annotations
+
 import cv2
 import numpy as np
 from typing import List, Tuple, Optional

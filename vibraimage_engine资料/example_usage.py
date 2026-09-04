@@ -11,10 +11,10 @@ VibraImage Engine — 使用示例。
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from vibraimage.pipeline.engine import VibraImageEngine
-from vibraimage.utils.validation import print_emotion_report, validate_all
+from backend.vibraimage.pipeline.engine import VibraImageEngine
+from backend.vibraimage.utils.validation import print_emotion_report, validate_all
 
 
 def example_offline_video(video_path: str = "test.mp4"):
@@ -124,4 +124,4 @@ if __name__ == '__main__':
         print("  python example_usage.py                 # 显示此帮助")
         print()
         print("或使用CLI:")
-        print("  python -m vibraimage <video_path>")
+        print("  python -m backend.vibraimage.cli <video_path>")

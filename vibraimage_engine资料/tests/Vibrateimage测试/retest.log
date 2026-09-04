@@ -1,0 +1,62 @@
+11:46:41 [INFO] run_validation: 数据目录: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data
+11:46:41 [INFO] run_validation: 结果目录: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\results_retest
+11:46:41 [INFO] run_validation: 图目录: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\plots_retest
+11:46:48 [INFO] backend.vibraimage.pipeline.face_detector: YOLO模型加载成功: yolov8n.pt, device=cpu
+11:46:48 [INFO] run_validation: 处理: s01/calm_01 ...
+11:46:50 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\calm_01.mp4, 469帧, 30.0fps
+11:47:36 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 469/469 帧检测到人脸
+11:47:36 [INFO] backend.vibraimage.gpu_backend: GPU检测: 未检测到GPU，使用CPU(numpy)
+11:47:37 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 8个窗口, 时长26.7s
+11:47:37 [INFO] backend.vibraimage.pipeline.engine: K值: 0.93 — K=0.93: 稳定 — 接近常模，无明显异常
+11:47:37 [INFO] run_validation: 处理: s01/calm_02 ...
+11:47:40 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\calm_02.mp4, 506帧, 30.0fps
+11:48:26 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 506/506 帧检测到人脸
+11:48:28 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 9个窗口, 时长30.0s
+11:48:28 [INFO] backend.vibraimage.pipeline.engine: K值: 4.44 — K=4.44: 轻度偏离 — 建议关注
+11:48:28 [INFO] run_validation: 处理: s01/calm_03 ...
+11:48:31 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\calm_03.mp4, 598帧, 30.0fps
+11:49:25 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 598/598 帧检测到人脸
+11:49:26 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 10个窗口, 时长33.3s
+11:49:26 [INFO] backend.vibraimage.pipeline.engine: K值: 4.01 — K=4.01: 轻度偏离 — 建议关注
+11:49:26 [INFO] run_validation: 处理: s01/happy_01 ...
+11:49:28 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\happy_01.mp4, 281帧, 30.0fps
+11:49:56 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 281/281 帧检测到人脸
+11:49:56 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 4个窗口, 时长13.3s
+11:49:56 [INFO] backend.vibraimage.pipeline.engine: K值: 10.11 — K=10.11: 显著偏离 — 建议专业干预
+11:49:56 [INFO] run_validation: 处理: s01/happy_02 ...
+11:49:58 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\happy_02.mp4, 351帧, 30.0fps
+11:50:31 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 351/351 帧检测到人脸
+11:50:33 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 6个窗口, 时长20.0s
+11:50:33 [INFO] backend.vibraimage.pipeline.engine: K值: 4.57 — K=4.57: 轻度偏离 — 建议关注
+11:50:33 [INFO] run_validation: 处理: s01/happy_03 ...
+11:50:34 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\happy_03.mp4, 358帧, 30.0fps
+11:51:09 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 358/358 帧检测到人脸
+11:51:11 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 6个窗口, 时长20.0s
+11:51:11 [INFO] backend.vibraimage.pipeline.engine: K值: 6.09 — K=6.09: 显著偏离 — 建议专业干预
+11:51:11 [INFO] run_validation: 处理: s01/sad_01 ...
+11:51:11 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\sad_01.mp4, 136帧, 30.10425812925647fps
+11:51:29 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 136/136 帧检测到人脸
+11:51:29 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 1个窗口, 时长3.3s
+11:51:29 [INFO] backend.vibraimage.pipeline.engine: K值: 5.68 — K=5.68: 轻度偏离 — 建议关注
+11:51:29 [INFO] run_validation: 处理: s01/sad_02 ...
+11:51:31 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\sad_02.mp4, 198帧, 30.280013661689665fps
+11:51:44 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 198/198 帧检测到人脸
+11:51:44 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 2个窗口, 时长6.6s
+11:51:44 [INFO] backend.vibraimage.pipeline.engine: K值: 9.03 — K=9.03: 显著偏离 — 建议专业干预
+11:51:44 [INFO] run_validation: 处理: s01/sad_03 ...
+11:51:45 [INFO] backend.vibraimage.pipeline.engine: 加载视频: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\data\s01\sad_03.mp4, 196帧, 30.066114772791188fps
+11:51:58 [INFO] backend.vibraimage.pipeline.engine: 人脸检测完成: 102/196 帧检测到人脸
+11:51:59 [INFO] backend.vibraimage.pipeline.engine: 分析完成: 2个窗口, 时长6.7s
+11:51:59 [INFO] backend.vibraimage.pipeline.engine: K值: 5.93 — K=5.93: 轻度偏离 — 建议关注
+11:51:59 [WARNING] run_validation: 跳过无法解析命名的文件: 失望.mp4 (期望 <emotion>_<trial>.mp4)
+11:51:59 [WARNING] run_validation: 跳过无法解析命名的文件: 委屈哭泣.mp4 (期望 <emotion>_<trial>.mp4)
+11:51:59 [WARNING] run_validation: 跳过无法解析命名的文件: 激动.mp4 (期望 <emotion>_<trial>.mp4)
+11:51:59 [WARNING] run_validation: 共跳过 3 个文件
+11:51:59 [INFO] run_validation: 共处理 9 个视频
+11:51:59 [INFO] run_validation: 参数表已保存: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\results_retest\params_by_emotion.csv
+11:51:59 [INFO] run_validation: 区分度结果已保存: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\results_retest\discrimination.csv
+11:51:59 [INFO] run_validation: 稳定性结果已保存: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\results_retest\stability.csv
+11:52:01 [INFO] run_validation: 箱线图已保存: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\plots_retest\emotion_boxplot.png
+11:52:01 [INFO] run_validation: 雷达图已保存: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\plots_retest\stability_radar.png
+11:52:01 [INFO] run_validation: 报告已保存: c:\Users\Lenovo\Desktop\心镜迭代（主体）\心镜AIGC5.1\Xinjing-AIGC-Agent-Platform\vibraimage_engine资料\tests\Vibrateimage测试\results_retest\report.md
+11:52:01 [INFO] run_validation: 验证流程完成

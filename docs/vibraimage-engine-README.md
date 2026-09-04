@@ -46,7 +46,7 @@
 
 ```python
 # ---- L1: 信号 → E1-E12 ----
-from vibraimage.pipeline.engine import VibraImageEngine
+from backend.vibraimage.pipeline.engine import VibraImageEngine
 
 engine = VibraImageEngine(window_frames=100, window_stride=50)
 result = engine.process_video("video.mp4")
@@ -56,7 +56,7 @@ emotions = result.to_dict()['emotions']
 print(f"K值: {result.K_value:.2f}")
 
 # ---- L2: E1-E12 → 情绪 ----
-from vibraimage.mapping.emotion_mapper import EmotionMapper
+from backend.vibraimage.mapping.emotion_mapper import EmotionMapper
 
 mapper = EmotionMapper()
 emotion = mapper.map(emotions, K=result.K_value)
@@ -70,8 +70,8 @@ result.to_json("output.json")
 ### CLI（仅 L1）
 
 ```bash
-python -m vibraimage video.mp4 --output result.json
-python -m vibraimage video.mp4 --window-frames 60 --method fft -v
+python -m backend.vibraimage.cli video.mp4 --output result.json
+python -m backend.vibraimage.cli video.mp4 --window-frames 60 --method fft -v
 ```
 
 ---
@@ -181,7 +181,7 @@ arousal = 1/(1+exp(−A_raw/T))
 ## 项目结构
 
 ```
-vibraimage/
+backend/vibraimage/
 ├── pipeline/
 │   ├── engine.py             # 主引擎：视频 → E1-E12 (L1)
 │   └── face_detector.py      # YOLOv8 人脸检测
