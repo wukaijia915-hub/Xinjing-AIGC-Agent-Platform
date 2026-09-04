@@ -24,8 +24,8 @@ router = APIRouter(prefix="/agents", tags=["多智能体系统"])
 async def get_agents_info():
     """返回所有智能体的详细信息，展示多Agent协作架构"""
     try:
-        from backend.agents.orchestrator_agent import OrchestratorAgent
-        orch = OrchestratorAgent(streaming=False)
+        from backend.agents.orchestrator_agent import get_shared_orchestrator
+        orch = get_shared_orchestrator()
         return {"success": True, "data": orch.get_agent_info()}
     except Exception as e:
         logger.error(f"获取智能体信息失败: {e}")
@@ -67,7 +67,7 @@ async def get_platform_info():
 async def trigger_inner_loop(background_tasks: BackgroundTasks):
     """手动触发一次全班情绪采集（感知智能体）"""
     try:
-        from backend.agents.orchestrator_agent import OrchestratorAgent
+        from backend.agents.orchestrator_agent import get_shared_orchestrator
 
         db = SessionLocal()
         try:
@@ -78,7 +78,7 @@ async def trigger_inner_loop(background_tasks: BackgroundTasks):
         if not students:
             return {"success": False, "message": "没有学生数据"}
 
-        orch = OrchestratorAgent(streaming=True)
+        orch = get_shared_orchestrator()
         run_id = str(uuid.uuid4())
 
         # 后台执行
@@ -108,7 +108,7 @@ async def trigger_inner_loop(background_tasks: BackgroundTasks):
 async def trigger_outer_loop(background_tasks: BackgroundTasks):
     """手动触发一次每日心理健康分析（分析→报告→预警 多Agent协作）"""
     try:
-        from backend.agents.orchestrator_agent import OrchestratorAgent
+        from backend.agents.orchestrator_agent import get_shared_orchestrator
 
         db = SessionLocal()
         try:
@@ -121,7 +121,7 @@ async def trigger_outer_loop(background_tasks: BackgroundTasks):
         if not students:
             return {"success": False, "message": "没有学生数据"}
 
-        orch = OrchestratorAgent(streaming=True)
+        orch = get_shared_orchestrator()
         run_id = str(uuid.uuid4())
         target_date = str(date.today())
 
@@ -152,9 +152,9 @@ async def trigger_outer_loop(background_tasks: BackgroundTasks):
 async def stream_agent_events(run_id: str):
     """SSE流式端点——实时观看多智能体协作过程"""
     from fastapi.responses import StreamingResponse
-    from backend.agents.orchestrator_agent import OrchestratorAgent
+    from backend.agents.orchestrator_agent import get_shared_orchestrator
 
-    orch = OrchestratorAgent()
+    orch = get_shared_orchestrator()
     queue = orch.get_queue(run_id)
 
     async def event_generator():

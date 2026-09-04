@@ -8,6 +8,7 @@ const routes = [
   { path: "/upload", name: "VideoUpload", component: () => import("../views/ImageUploadView.vue") },
   { path: "/aigc", name: "AigcReport", component: () => import("../views/AigcReportView.vue") },
   { path: "/agents", name: "AgentPanel", component: () => import("../views/AgentPanelView.vue") },
+  { path: "/scales", name: "ScalesView", component: () => import("../views/ScalesView.vue") },
 ];
 
 export default createRouter({ history: createWebHistory(), routes });

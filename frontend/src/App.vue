@@ -9,6 +9,7 @@
         <router-link to="/upload">📹 视频上传</router-link>
         <router-link to="/aigc">✨ AIGC报告</router-link>
         <router-link to="/agents">🤖 智能体面板</router-link>
+        <router-link to="/scales">📋 心理量表</router-link>
       </nav>
     </aside>
 

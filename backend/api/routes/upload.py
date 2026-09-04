@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.config import get_settings
 from backend.api.deps import get_db
-from backend.agents.orchestrator_agent import OrchestratorAgent
+from backend.agents.orchestrator_agent import get_shared_orchestrator
 from backend.schemas.emotion import UploadResponse
 
 router = APIRouter(tags=["上传"])
@@ -29,7 +29,7 @@ async def upload_image(
         f.write(content)
 
     run_id = str(uuid.uuid4())
-    orchestrator = OrchestratorAgent()
+    orchestrator = get_shared_orchestrator()
     orchestrator.get_queue(run_id)
     import asyncio
     asyncio.create_task(
@@ -61,7 +61,7 @@ async def upload_video(
         f.write(content)
 
     run_id = str(uuid.uuid4())
-    orchestrator = OrchestratorAgent()
+    orchestrator = get_shared_orchestrator()
     orchestrator.get_queue(run_id)
     import asyncio
     asyncio.create_task(

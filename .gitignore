@@ -49,9 +49,13 @@ logs/
 # 大型参考资料（不在仓库中，开发者本地查阅即可）
 docs/vibraimage-reference/
 
+# 评审意见及配套资料（本地参考，不上传）
+华南师大*/
+
 # Node
 node_modules/
 frontend/node_modules/
 frontend/dist/
-/static/
+# 前端构建产物由本地 Docker 构建生成，提交至仓库供服务器部署
 package-lock.json
+

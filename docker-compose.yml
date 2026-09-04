@@ -13,12 +13,14 @@ services:
       - "8000:8000"
     environment:
       - AI_PLATFORM=${AI_PLATFORM:-lingshu}
-      - LINGSHU_API_KEY=${LINGSHU_API_KEY}
+      - LINGSHU_API_KEY=${LINGSHU_API_KEY:-}
       - LINGSHU_BASE_URL=${LINGSHU_BASE_URL:-https://api.moark.com/v1}
       - LINGSHU_MODEL=${LINGSHU_MODEL:-Lingshu-32B}
-      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - AI_FALLBACK_PLATFORMS=${AI_FALLBACK_PLATFORMS:-deepseek}
-      - DATABASE_URL=sqlite:///./data/psych.db
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/psych.db}
+    env_file:
+      - .env
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

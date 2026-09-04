@@ -23,6 +23,9 @@ from backend.agents.alert_agent import AlertAgent
 
 logger = logging.getLogger(__name__)
 
+# 全局单例 — SSE、upload、agents 路由共享同一个实例
+_orchestrator_instance = None
+
 # 模块级共享状态 — 确保不同OrchestratorAgent实例间队列和结果可共享
 # （例如：POST /api/agents/trigger/outer 创建队列，
 #        GET /api/sse/stream/{run_id} 读取队列）
@@ -130,10 +133,64 @@ class OrchestratorAgent:
                 "result": result.get("final_answer", "")[:500],
             })
 
+            # ---- 持久化：将识别结果存入数据库 ----
+            record_id = None
+            try:
+                from backend.database import SessionLocal
+                from backend.models.emotion_record import EmotionRecord
+                from backend.tools.emotion_recognition import EmotionRecognitionTool
+
+                # 直接调用工具获取结构化数据
+                tool = EmotionRecognitionTool()
+                tool_result = tool.execute(
+                    video_path=video_path,
+                    student_id=student_id,
+                    baseline_mood=0.7,
+                )
+
+                if tool_result.success:
+                    data = tool_result.data
+                    db = SessionLocal()
+                    try:
+                        record = EmotionRecord(
+                            student_id=student_id,
+                            image_path=video_path,
+                            facial_emotion=data.get("facial_emotion", "未知"),
+                            facial_conf=data.get("facial_conf", 0.0),
+                            facial_valence=data.get("facial_valence", 0.0),
+                            facial_arousal=data.get("facial_arousal", 0.0),
+                            vestibular_valence=data.get("vestibular_valence", 0.0),
+                            vestibular_arousal=data.get("vestibular_arousal", 0.0),
+                            vestibular_confidence=data.get("vestibular_confidence", 0.0),
+                            vestibular_intensity=data.get("vestibular_intensity", 0.0),
+                            fused_emotion=data.get("fused_emotion", "未知"),
+                            fused_score=data.get("fused_score", 0.0),
+                            fused_valence=data.get("fused_valence", 0.0),
+                            fused_arousal=data.get("fused_arousal", 0.0),
+                            confidence_diff=data.get("confidence_diff", 0.0),
+                            requires_review=1 if data.get("requires_review") else 0,
+                            estimated_accuracy=data.get("estimated_accuracy", 0.0),
+                            is_manual=1 if trigger_type == "manual" else 0,
+                            recorded_at=datetime.now().isoformat(),
+                        )
+                        db.add(record)
+                        db.commit()
+                        db.refresh(record)
+                        record_id = record.id
+                        logger.info(f"情绪记录已保存: id={record_id}, emotion={data.get('fused_emotion')}")
+                    except Exception as e:
+                        logger.error(f"保存情绪记录失败: {e}")
+                        db.rollback()
+                    finally:
+                        db.close()
+            except Exception as e:
+                logger.error(f"持久化失败: {e}")
+
             await self._emit(run_id, "final", {
                 "agent": self.name,
                 "content": f"情绪采集完成: 感知智能体已完成识别",
                 "perception_result": result,
+                "record_id": record_id,
             })
 
             _shared_results[run_id] = result
@@ -141,9 +198,10 @@ class OrchestratorAgent:
             return result
 
         except Exception as e:
-            logger.error(f"内环执行失败: {e}")
-            await self._emit(run_id, "error", {"content": str(e)})
-            return {"error": str(e)}
+            import traceback
+            logger.error(f"内环执行失败: {e}\n{traceback.format_exc()}")
+            await self._emit(run_id, "error", {"content": str(e) or type(e).__name__})
+            return {"error": str(e) or type(e).__name__}
 
     async def run_outer_loop(
         self,
@@ -284,3 +342,11 @@ class OrchestratorAgent:
             "platform": self.perception.get_info().get("platform", "未知"),
             "streaming": self.streaming,
         }
+
+
+def get_shared_orchestrator(platform: str | None = None):
+    """返回全局唯一的 OrchestratorAgent 实例（线程安全）。"""
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        _orchestrator_instance = OrchestratorAgent(streaming=True, platform=platform)
+    return _orchestrator_instance

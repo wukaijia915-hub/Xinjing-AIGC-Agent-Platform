@@ -23,6 +23,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import get_settings
+from backend.models.scale_result import ScaleResult  # noqa: F401 预注册避免Student关系引用失败
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,8 +33,8 @@ logger = logging.getLogger(__name__)
 
 
 def seed_data():
-    """预种演示数据：3个学生 + 7天历史情绪记录"""
-    import random
+    """预种演示数据：3个学生 + 7天历史情绪记录 + 预警"""
+    import random, json
     from datetime import datetime, timedelta
     from backend.database import engine, Base, SessionLocal
     from backend.models.student import Student
@@ -122,8 +123,70 @@ def seed_data():
             db.add_all(records_batch)
             db.commit()
             logger.info(f"已预种 {len(records_batch)} 条历史情绪记录（6天 × 3学生）")
+
     finally:
         db.close()
+
+    # 预种预警数据：确保绿/黄/红各一条
+    from backend.database import SessionLocal as _SL
+    from backend.models.alert import Alert as _Alert
+    _db = _SL()
+    try:
+        if _db.query(_Alert).count() == 0:
+            severities = ["green", "yellow", "red"]
+            reasons = {
+                "green": "近期情绪状态稳定，各项指标正常，保持良好状态",
+                "yellow": "情绪存在轻度波动，负面情绪占比略高，建议适度关注",
+                "red": "近期情绪波动明显，负面情绪累积，建议安排一对一访谈",
+            }
+            for s, sev in zip(sorted(_db.query(Student).all(), key=lambda x: x.baseline_mood, reverse=True), severities):
+                ch = ["看板","APP"] if sev=="green" else (["看板","APP","微信(班主任)"] if sev=="yellow" else ["看板","APP","微信(班主任)","微信(家长)","短信","邮件","紧急电话"])
+                _db.add(_Alert(
+                    student_id=s.id,
+                    severity=sev, risk_level=sev,
+                    alert_reason=reasons[sev], risk_reason=reasons[sev],
+                    overall_score={"green":0.82,"yellow":0.58,"red":0.31}[sev],
+                    feedback_channel=",".join(ch),
+                    feedback_content=f"[{sev.upper()}] {s.name}: {reasons[sev]}",
+                    sent_channels=json.dumps(ch),
+                    triggered_at=datetime.now().isoformat(),
+                ))
+            _db.commit()
+            logger.info("已预种 3 条预警记录（绿/黄/红各一）")
+    finally:
+        _db.close()
+
+    # 预种量表测评数据
+    from backend.models.scale_result import ScaleResult as _SR
+    _db2 = _SL()
+    try:
+        if _db2.query(_SR).count() == 0:
+            import random as _rnd
+            _rnd.seed(42)
+            all_students = _db2.query(Student).all()
+            for student in all_students:
+                # SAS
+                sas_answers = [_rnd.randint(1,4) for _ in range(20)]
+                sas_raw = sum(sas_answers)
+                sas_std = int(sas_raw * 1.25)
+                sas_level = "normal" if sas_std < 50 else ("mild" if sas_std < 60 else ("moderate" if sas_std < 70 else "severe"))
+                _db2.add(_SR(student_id=student.id, scale_type="SAS", raw_score=sas_raw,
+                    standard_score=sas_std, level=sas_level, dimension_scores="{}",
+                    answers=json.dumps(sas_answers), submitted_at=datetime.now().isoformat()))
+
+                # SDS
+                sds_answers = [_rnd.randint(1,4) for _ in range(20)]
+                sds_raw = sum(sds_answers)
+                sds_std = int(sds_raw * 1.25)
+                sds_level = "normal" if sds_std < 50 else ("mild" if sds_std < 60 else ("moderate" if sds_std < 70 else "severe"))
+                _db2.add(_SR(student_id=student.id, scale_type="SDS", raw_score=sds_raw,
+                    standard_score=sds_std, level=sds_level, dimension_scores="{}",
+                    answers=json.dumps(sds_answers), submitted_at=datetime.now().isoformat()))
+
+            _db2.commit()
+            logger.info("已预种 6 条量表测评记录（3学生 × 2量表）")
+    finally:
+        _db2.close()
 
 
 @asynccontextmanager
@@ -248,6 +311,7 @@ from backend.api.routes.alerts import router as alerts_router
 from backend.api.routes.aigc import router as aigc_router
 from backend.api.routes.agents import router as agents_router
 from backend.api.routes.vibraimage import router as vibraimage_router
+from backend.api.routes.scales import router as scales_router
 from backend.api.routes.admin import router as admin_router
 
 app.include_router(upload_router, prefix="/api")
@@ -258,6 +322,7 @@ app.include_router(alerts_router, prefix="/api")
 app.include_router(aigc_router, prefix="/api")
 app.include_router(agents_router, prefix="/api")
 app.include_router(vibraimage_router)
+app.include_router(scales_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
 # 注册 GPU 状态 API
