@@ -42,6 +42,7 @@ from ..utils.constants import (
     DEFAULT_WINDOW_STRIDE, FACE_ROI_SIZE, FREQ_BINS,
     TENSION_HIGH_FREQ_THRESHOLD, DEPRESSION_SIGMA_OFFSET,
     NORMAL_NORMS, STANDARDIZATION_FACTORS, PARAM_NAMES_ZH,
+    MIN_WINDOW_FRAMES, MIN_CONFIDENCE,
 )
 from .face_detector import FaceDetector
 
@@ -70,6 +71,12 @@ class WindowResult:
     # 空间分析
     per_line_stats: Optional[PerLineStats] = field(default=None, repr=False)
 
+    # 窗口置信度 (0.3-1.0)。短于设计窗口(window_frames)的片段按
+    # 时间-频率分辨率权衡衰减: confidence = max(MIN, sqrt(n/window_frames))。
+    confidence: float = 1.0
+    # 实际参与分析的帧数（短窗口时 < window_frames）
+    frames_in_window: int = DEFAULT_WINDOW_FRAMES
+
     def to_dict(self) -> dict:
         return {
             'window_id': self.window_id,
@@ -84,6 +91,8 @@ class WindowResult:
             'hist_sigma': self.hist_stats.sigma,
             'hist_F_max': self.hist_stats.F_max,
             'hist_count_max': self.hist_stats.count_max,
+            'confidence': self.confidence,
+            'frames_in_window': self.frames_in_window,
         }
 
 
@@ -112,11 +121,15 @@ class SessionResult:
     duration_sec: float
     n_windows: int
 
+    # 会话级置信度 (各窗口置信度的均值，反映片段时长是否满足设计窗口)
+    confidence: float = 1.0
+
     def to_dict(self) -> dict:
         windows = [w.to_dict() for w in self.window_results]
         return {
             'n_windows': self.n_windows,
             'duration_sec': self.duration_sec,
+            'confidence': self.confidence,
             'emotions': {
                 'aggression': float(np.mean([w.aggression for w in self.window_results])),
                 'stress': float(np.mean([w.stress for w in self.window_results])),
@@ -320,10 +333,35 @@ class VibraImageEngine:
         return np.array(frames), actual_fps
 
     def _process_windows(self, frames: np.ndarray) -> List[WindowResult]:
-        """滑动窗口处理。"""
+        """滑动窗口处理（含短片段自适应）。
+
+        当输入帧数 >= 设计窗口(window_frames)时，按 window_stride 滑动；
+        当输入帧数介于 MIN_WINDOW_FRAMES 与设计窗口之间时，退化为
+        单个"短窗口"（全部帧作为一窗），并按时间-频率分辨率权衡
+        （频率分辨率 Δf ≈ 1/T，短观测时长 → 频谱估计置信度下降，
+        见 Oppenheim & Schafer, Discrete-Time Signal Processing,
+        第 8 章 DFT 分析窗理论）衰减置信度。
+        """
         results = []
         n_frames = len(frames)
         window_id = 0
+
+        if n_frames < MIN_WINDOW_FRAMES:
+            logger.warning(f"帧数({n_frames})低于最小窗口({MIN_WINDOW_FRAMES})，无法分析")
+            return results
+
+        if n_frames < self.window_frames:
+            # 短片段自适应：整段作为单窗口，置信度按 sqrt(n/window) 衰减
+            window_frames = frames
+            try:
+                result = self._process_single_window(window_frames, window_id)
+                result.timestamp_sec = 0.0
+                result.frames_in_window = n_frames
+                result.confidence = self._window_confidence(n_frames)
+                results.append(result)
+            except Exception as e:
+                logger.warning(f"短窗口处理失败: {e}")
+            return results
 
         for start in range(0, n_frames - self.window_frames + 1, self.window_stride):
             end = start + self.window_frames
@@ -332,6 +370,7 @@ class VibraImageEngine:
             try:
                 result = self._process_single_window(window_frames, window_id)
                 result.timestamp_sec = start / self.frame_rate
+                result.confidence = self._window_confidence(self.window_frames)
                 results.append(result)
                 window_id += 1
             except Exception as e:
@@ -339,6 +378,19 @@ class VibraImageEngine:
                 continue
 
         return results
+
+    @staticmethod
+    def _window_confidence(n_frames: int) -> float:
+        """窗口置信度：按时间-频率分辨率权衡衰减。
+
+        confidence = max(MIN_CONFIDENCE, sqrt(n_frames / window_frames))
+        满窗口 (100帧) 为 1.0；16 帧短片段约为 0.4；8 帧下限 0.3。
+        文献依据：离散傅里叶变换频率分辨率 Δf = 1/T，短观测时长导致
+        频谱泄漏与频率分辨率下降，估计置信度应相应衰减。
+        """
+        from ..utils.constants import DEFAULT_WINDOW_FRAMES
+        ratio = n_frames / DEFAULT_WINDOW_FRAMES
+        return float(max(MIN_CONFIDENCE, min(1.0, ratio ** 0.5)))
 
     def _process_single_window(
         self,
@@ -459,7 +511,8 @@ class VibraImageEngine:
             if w.hist_stats.F_max > 0:
                 f1_samples.append(1.0 / max(w.hist_stats.F_max, 0.1))
         T_m = np.mean(f1_samples) if f1_samples else 0.1
-        T_total = n * self.window_frames / self.frame_rate  # 总时长
+        total_frames = float(sum(w.frames_in_window for w in window_results))
+        T_total = max(total_frames / self.frame_rate, 1e-6)  # 总时长（按实际帧数）
         inhibition = compute_inhibition(T_m, T_total)
 
         # E10 Neuroticism
@@ -509,8 +562,11 @@ class VibraImageEngine:
 
         K = compute_k_value(emotion_averages, NORMAL_NORMS, STANDARDIZATION_FACTORS)
 
-        # 计算时长
-        duration_sec = n * self.window_frames / self.frame_rate
+        # 计算时长（按实际参与分析的帧数，短窗口时正确反映真实时长）
+        total_frames = float(sum(w.frames_in_window for w in window_results))
+        duration_sec = total_frames / self.frame_rate
+        # 会话级置信度 = 各窗口置信度均值
+        session_confidence = float(np.mean([w.confidence for w in window_results]))
 
         return SessionResult(
             window_results=window_results,
@@ -524,4 +580,5 @@ class VibraImageEngine:
             K_value=K,
             duration_sec=duration_sec,
             n_windows=n,
+            confidence=session_confidence,
         )

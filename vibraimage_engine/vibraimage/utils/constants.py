@@ -21,6 +21,8 @@ FREQ_BAND = (0.1, 10.0)        # VibraImage有效频段 (Hz)
 DEFAULT_FRAME_RATE = 30          # 默认摄像头帧率
 DEFAULT_WINDOW_FRAMES = 100      # 默认每窗口帧数 (~3.3s @ 30fps)
 DEFAULT_WINDOW_STRIDE = 50       # 窗口步长 (50%重叠)
+MIN_WINDOW_FRAMES = 8            # 短片段自适应窗口的帧数下限
+MIN_CONFIDENCE = 0.3             # 短窗口置信度下限
 FREQ_BINS = 100                  # 频率直方图bin数
 FACE_ROI_SIZE = (224, 224)       # 人脸ROI缩放尺寸
 

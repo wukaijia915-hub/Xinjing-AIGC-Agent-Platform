@@ -1,3 +1,43 @@
+---
+
+## 2026-10-07 — 升级批次：自适应时间窗 与 开源生态落地（v2.9.4 增量）
+
+### 一、升级背景
+RAVDESS 真实数据验证（v2.9.3）暴露关键边界：16 帧抽帧片段低于前庭引擎设计窗口（100 帧/3.3s），
+导致短片段频谱分辨率不足、结果置信度失真。本轮将该边界条件转化为正式能力——短片段自适应窗口与置信度衰减，
+并同步完成开源生态落地（wheel 发布、GitLink 镜像、README 工程化）。
+
+### 二、升级内容详解（4 项）
+
+#### 1. 自适应时间窗（文献支撑）
+- ibraimage_engine/vibraimage/pipeline/engine.py：_process_windows 支持短片段退化路径
+  - 帧数 >= MIN_WINDOW_FRAMES(8) 且 < 设计窗口时，整段作为单窗口分析（此前直接返回空导致报错）
+  - 置信度公式：confidence = max(0.3, sqrt(n / window_frames))——满窗口 1.0，16 帧约 0.4
+  - 文献依据：DFT 频率分辨率 Δf ≈ 1/T（Oppenheim & Schafer, Discrete-Time Signal Processing, 第 8 章），
+    短观测时长 → 频谱泄漏与频率分辨率下降 → 估计置信度应衰减
+- WindowResult/SessionResult 新增 confidence、rames_in_window 字段并输出 to_dict
+- 时长聚合改为按实际帧数（sum(frames_in_window) / fps），短窗口不再按 100 帧高估
+- 新增 ibraimage_engine/tests/test_adaptive_window.py（8 项）
+
+#### 2. 开源生态落地（替代 PyPI 方案）
+- scripts/release/build_wheel.py：一键构建 wheel（build 1.6.1，产物 43.9KB，全新 venv 验证可安装）
+- docs/发布操作指引.md：GitHub Release（网页/CLI 两方式）、国内镜像（GitLink 首选/Gitee/GitCode）、PyPI 可选结论
+- 已执行：GitHub Release v0.2.0 发布；GitLink 镜像 master/main 强制同步（凭据 host 差异修复：www.gitlink.org.cn）
+
+#### 3. README 工程化
+- 新增 Coverage（60%）、Release（v0.2.0）badge；GitLink 国内镜像链接
+- 安装章节新增「独立安装 VibraImage 引擎」：Release wheel / 源码 -e 两种方式 + 使用示例
+
+#### 4. 工程清理
+- static/（34 个前端构建产物）git rm --cached 移出跟踪并加入 .gitignore，工作区文件保留
+  （前端源码在 frontend/，npm run build 可再生）
+
+### 三、验证
+- 引擎包测试：	est_adaptive_window.py 8 项通过；	est_face_detector.py 6 项通过
+- 全量测试实测 **264 passed**（256 + 8 新测试），无回归
+- 覆盖率 60%（pytest-cov，backend + vibraimage_engine 合并统计）
+- README badge / 镜像链接 / wheel 安装步骤均已本地核对
+
 # 心镜 · 开发日志
 
 > 记录每次升级的背景、改动内容、验证结果，供协作者同步进度。

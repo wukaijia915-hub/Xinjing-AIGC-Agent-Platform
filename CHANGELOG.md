@@ -1,3 +1,33 @@
+## v2.9.4（自适应时间窗 + 开源生态落地）— 2026-10-07
+
+围绕「开源融合」与「完成度」得分点，修复 RAVDESS 真实数据验证暴露的短片段边界问题，并完成开源生态落地：
+
+### 自适应时间窗（有文献支撑）
+- ibraimage_engine/vibraimage/pipeline/engine.py：短片段（<设计窗口 100 帧）不再报错，退化为单窗口处理并衰减置信度
+  - confidence = max(MIN_CONFIDENCE, sqrt(n/window_frames))，满窗口 1.0、16 帧约 0.4、8 帧下限 0.3
+  - 依据：DFT 频率分辨率 Δf ≈ 1/T（Oppenheim & Schafer《离散时间信号处理》第 8 章分析窗理论）
+- SessionResult/WindowResult 新增 confidence 字段并输出到 to_dict；时长按实际帧数计算
+- 新增 ibraimage_engine/tests/test_adaptive_window.py（8 项）：满窗置信度/短窗衰减/时长正确性/下限/过低报错/序列化
+
+### 开源生态落地
+- scripts/release/build_wheel.py：一键构建引擎 wheel（vibraimage_engine-0.2.0-py3-none-any.whl，43.9KB）
+- docs/发布操作指引.md：GitHub Release（网页/CLI）+ 国内镜像（GitLink/Gitee/GitCode）+ PyPI 可选
+- GitHub Release v0.2.0 已发布（wheel 可下载）；GitLink 镜像已同步（master/main）
+- README 新增：Coverage/Release badge、GitLink 镜像链接、引擎独立安装方式
+
+### 工程清理
+- static/（34 个前端构建产物）移出 git 跟踪并加入 .gitignore（源码在 frontend/）
+- 全量测试实测 **264 passed**（256 + 8 新测试）；覆盖率 60%
+
+## v2.9.3（RAVDESS 真实数据三路验证）— 2026-10-02
+
+围绕「应用效果」得分点，用公开真实数据验证融合框架端到端可运行：
+- 新增 scripts/data/ravdess_three_way.py：RAVDESS 1440 真实视频三路对比（面部轻量路/前庭 FFT 频谱/D-S 融合），支持 --stratified 分层抽样可复现
+- 结果：前庭路负性情绪识别 92.8%（sad 99.0%/disgust 95.8%）；融合路总体 43.1%；如实暴露 16 帧抽帧 < 设计窗口的边界条件
+- ace_detector 新增全帧 ROI 后备模式（无 Haar/无 YOLO 纯净环境可运行）
+- 新增 ibraimage_engine/tests/test_face_detector.py（6 项）；CI 纳入引擎包测试
+- 技术报告 5.2/5.3 新增真实数据验证与诚实声明；作品简介压缩至 297 字（≤300 合规）；测试数统一 256
+
 # 更新日志
 
 ## v2.9.2（组件测试与 CI 工程化加固）— 2026-10-02

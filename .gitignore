@@ -80,3 +80,7 @@ data/demo/
 
 # AGPL 权重不随仓库分发
 *.pt
+
+# 前端构建产物（源码在 frontend/，构建后生成）
+static/
+# wheel 安装验证虚拟环境.venv_wheel_test/

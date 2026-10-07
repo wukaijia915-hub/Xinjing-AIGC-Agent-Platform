@@ -8,6 +8,10 @@
 [![VibraImage](https://img.shields.io/badge/引擎-VibraImage-purple.svg)]()
 [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg)](LICENSE)
 [![CI](https://github.com/wjh55224545/Xinjing-AIGC-Agent-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/wjh55224545/Xinjing-AIGC-Agent-Platform/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/Coverage-60%25-yellow.svg)]()
+[![Release](https://img.shields.io/badge/Release-v0.2.0-blue.svg)](https://github.com/wjh55224545/Xinjing-AIGC-Agent-Platform/releases)
+
+> **国内镜像**：[GitLink](https://gitlink.org.cn/w55224545/Xinjing-AIGC-Agent-Platform)（免翻墙 clone，与 GitHub 同步更新）
 
 ---
 
@@ -100,6 +104,7 @@
 
 ```bash
 git clone https://github.com/wjh55224545/Xinjing-AIGC-Agent-Platform.git
+# 国内用户可用 GitLink 镜像: git clone https://gitlink.org.cn/w55224545/Xinjing-AIGC-Agent-Platform.git
 cd Xinjing-AIGC-Agent-Platform
 
 # 后端依赖
@@ -112,6 +117,27 @@ pip install -r requirements.txt
 cd frontend
 npm install
 cd ..
+```
+
+#### 独立安装 VibraImage 引擎（可选）
+
+引擎已作为独立组件包发布，可从 GitHub Release 安装（无需克隆整个仓库）：
+
+```bash
+# 方式一：从 Release 下载 wheel 后安装
+pip install vibraimage_engine-0.2.0-py3-none-any.whl
+
+# 方式二：直接从仓库源码安装
+git clone https://github.com/wjh55224545/Xinjing-AIGC-Agent-Platform.git
+cd Xinjing-AIGC-Agent-Platform/vibraimage_engine
+pip install -e .
+```
+
+```python
+from vibraimage import VibraImageEngine
+engine = VibraImageEngine()
+result = engine.process_video("demo.mp4")   # 白盒情绪参数 E1-E12 + K 值
+print(result.to_dict())
 ```
 
 ### 2. 配置环境变量
